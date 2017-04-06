@@ -558,23 +558,26 @@ def MakeVESTA(IDKEY,x,fname):
            format(x.dbF[IDKEY]["name"])
    f.write( text )
    # calculate cell parameters
-   a=sqrt(dot(x.dbF[IDKEY]["lattice"][:,0],x.dbF[IDKEY]["lattice"][:,0]))
-   b=sqrt(dot(x.dbF[IDKEY]["lattice"][:,1],x.dbF[IDKEY]["lattice"][:,1]))
-   c=sqrt(dot(x.dbF[IDKEY]["lattice"][:,2],x.dbF[IDKEY]["lattice"][:,2]))
+   avec=x.dbF[IDKEY]["lattice"][0]
+   bvec=x.dbF[IDKEY]["lattice"][1]
+   cvec=x.dbF[IDKEY]["lattice"][2]
+   a=sqrt(dot(avec,avec))
+   b=sqrt(dot(bvec,bvec))
+   c=sqrt(dot(cvec,cvec))
 
-   s=dot(x.dbF[IDKEY]["lattice"][:,0],x.dbF[IDKEY]["lattice"][:,1])/(a*b)
+   s=dot(avec,bvec)/(a*b)
    alpha=degrees( arccos(s) ) 
 
-   s=dot(x.dbF[IDKEY]["lattice"][:,1],x.dbF[IDKEY]["lattice"][:,2])/(b*c)
+   s=dot(bvec,cvec)/(b*c)
    beta=degrees( arccos(s) ) 
 
-   s=dot(x.dbF[IDKEY]["lattice"][:,2],x.dbF[IDKEY]["lattice"][:,0])/(c*a)
+   s=dot(cvec,avec)/(c*a)
    gamma=degrees( arccos(s) ) 
 
    text = 'CELLP\n  {:.6f}   {:.6f}   {:.6f}  {:.6f}  {:.6f}  {:.6f}\n  0.000000   0.000000   0.000000   0.000000   0.000000   0.000000\nSTRUC\n'.\
            format(a,b,c,beta,gamma,alpha)
    f.write( text )
-   
+
    k=-1
    ks=-1
    for itype in x.dbF[IDKEY]["species"]:
@@ -1499,6 +1502,7 @@ def AddVibrationalEnergy( fname,T, EN, NION, SPECIES,verbosity=0):
 #-------------------------------------------------------------------------------
 def ImportStructures(directory=None,log=None,status=None,force=None, Temperature=0):
    import os.path
+   from numpy import dot,sqrt
 
    #initialize full database
    x=Data()
@@ -1514,14 +1518,14 @@ def ImportStructures(directory=None,log=None,status=None,force=None, Temperature
 
              if status is not None: 
                 status.Initialize(l)
-            
+
          for file in os.listdir(directory):
              if file.endswith(".vasp"):
                f = os.path.join(directory,file)
                key=ImportPOSCAR(f,x,logger=log,forcethresh=force, Temperature=Temperature)
-               if key is None: 
+               if key is None:
                     fout +=1
-               if status is not None: 
+               if status is not None:
                   status.UpdateProgressbar(' Importing files...')
          if log is not None: 
             log.Add2Log(str(l-fout)+' structures imported ')

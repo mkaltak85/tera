@@ -7,8 +7,10 @@ It runs under Linux and Windows and uses python2. The OSX version is still under
 
 Requirements:
 
-python2.7
-scipy
+  python2.7 
+  numpy
+  matplotlib
+  wxpython
 
 Use Anaconda under Windows. 
 

@@ -112,17 +112,11 @@ def ReadDataTable(f,species,nion,statusbar,IsRandom,log):
 
     a = array(sx.pdb["phase_matrix"])
 
-    #
-    # make up for weired arrangement of endpoints
-    #
-    ksort=[1,2,0]
-    #ksort=[2,0,1]
-
     # import data into sx.db
     for i in range(0,len(data)):
        xb=[]
        for j in range(0,3):
-          xb.append(data[i,ksort[ j ]] )
+          xb.append(data[i, j ] )
        si=IntegerStoichiometry(xb,sx)[0]
        # 
        # number of ions
@@ -169,8 +163,8 @@ def ReadDataTable(f,species,nion,statusbar,IsRandom,log):
           Xin = []
           Xj = data[i,:3] 
           for j in [0,1,2] :
-             Xb.append( float( Xj[ ksort[j]] )/float(sum( data[i,:3] )))
-             Xin.append( Xj[ ksort[j]]  ) 
+             Xb.append( float( Xj[ j] )/float(sum( data[i,:3] )))
+             Xin.append( Xj[ j]  ) 
 
           alpha = GetLCM( Xin ) 
 
@@ -200,6 +194,8 @@ def ReadDataTable(f,species,nion,statusbar,IsRandom,log):
           #finally store energy 
           sx.db[IDKEY]["energy"] = EN
           sx.db[IDKEY]["maxForce"] = [ 0.,0.,0.]
+          sx.db[IDKEY]["degeneracy"]=1
+          sx.db[IDKEY]["path"]=''
 
           #add dictionary with IDKEY-Key to database
           sx.dbF[IDKEY]={}
@@ -211,6 +207,8 @@ def ReadDataTable(f,species,nion,statusbar,IsRandom,log):
           sx.dbF[IDKEY]["IsUnique"]=UNIQUE
           sx.dbF[IDKEY]["energy"] = EN
           sx.dbF[IDKEY]["maxForce"] = [ 0.,0.,0.]
+          sx.dbF[IDKEY]["degeneracy"]=1
+          sx.dbF[IDKEY]["path"]=''
     return sx 
 
 #------------------------------------------------------------------------------
@@ -369,8 +367,8 @@ class ImportForm(wx.Dialog):
         self.Bind(wx.EVT_CLOSE, self.OnCancel)
         
         
-        self.SetMaxSize((400,345))
-        self.SetMinSize((400,345))
+        self.SetMaxSize((400,375))
+        self.SetMinSize((400,375))
 
         self.OpenArguments()
 
@@ -628,6 +626,7 @@ class ImportForm(wx.Dialog):
                            UpdateFormationEnergies, GetConvexHull, \
                            GetDelaunay
         from debugger import QhullDebugger
+        from os.path import exists
         try:
            #
            # in case directory was chosen, import all data 
@@ -657,6 +656,10 @@ class ImportForm(wx.Dialog):
                    return
 
            if len( d ) > 0 : 
+              if not exists(d):
+                 text='Directory "{:}" not found'.format(d)
+                 ShowStatusErrorMessage(self.statusbar,text)
+                 return
               if len(self.Actrl.GetValue()) == 0 : 
                  text='Endpoint B missing'
                  ShowStatusErrorMessage(self.statusbar,text)

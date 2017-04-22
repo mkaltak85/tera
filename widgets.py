@@ -786,8 +786,8 @@ class Notebook(aui.AuiNotebook):
                      ( 'Stability', 'StabilityContourSetOn' ) ,\
                      ( 'Reaction', 'ReactionContourSetOn' ) ,\
                     )
-           for text, switch  in items:
 
+           for text, switch  in items:
                if hasattr( Project, switch ) : 
                   if getattr( Project, switch ) : 
                      if text is None:
@@ -798,7 +798,6 @@ class Notebook(aui.AuiNotebook):
                         color= wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNHILIGHT)
                         t.SetBackgroundColour( color )
                         t.Refresh()
-
 
     #--------------------------------------------------------------------------
     def RemoveTab(self): 
@@ -878,6 +877,13 @@ class Notebook(aui.AuiNotebook):
                   color= wx.SystemSettings.GetColour(wx.SYS_COLOUR_BACKGROUND)
                   t.SetBackgroundColour( color )
                   t.Refresh()
+               #
+               # Enable or disable buttons , but dont change status
+               #
+               if SelectedMPLToolBar.button_is_enabled[ text ]:
+                  t.Enable()
+               else:
+                  t.Disable()
 
            self.SetProjectFromSettings(current_page)
 

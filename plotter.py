@@ -1,9 +1,8 @@
-import wx 
+import wx
 import icons35 as ico
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 
 
-  
 # -----------------------------------------------------------------------------
 # prints reaction equation into logger
 # -----------------------------------------------------------------------------
@@ -749,6 +748,7 @@ class CustomNavigationToolbar2Wx(NavigationToolbar2Wx):
         # initialize Tool ID dictionary 
         #
         self.wx_ids = {}
+        self.button_is_enabled = {}
         # list of toolitems to add to the toolbar, format is:
         # (
         #   text, # the text of the button (often not visible to users)
@@ -775,11 +775,17 @@ class CustomNavigationToolbar2Wx(NavigationToolbar2Wx):
         ('Snap', 'SnapCursor', 'Snap cursor to data points', 'OnSnap'), \
         ('Toggle3D', 'Toggle3D', 'Show diagram in 3D', 'OnToggle3D'), \
         )
+        self.tools=[]
         for text, icon, tooltip_text, callback in self.items:
             if text is None:
                 self.AddSeparator()
                 continue
+            self.tools.append( text )
             self.wx_ids[text] = wx.NewId()
+
+            # buttons are enabled by default
+            self.button_is_enabled[ text ] = True
+
             img=getattr(ico,icon).GetImage().ConvertToBitmap()
             self._AddTool(self, self.wx_ids, text,
                         img,
@@ -796,7 +802,7 @@ class CustomNavigationToolbar2Wx(NavigationToolbar2Wx):
 
     def _AddTool(self,parent, wx_ids, text, bmp, tooltip_text):
         if text in ['Pan', 'Zoom','Opt','Points','TieLines','Grid',\
-            'Snap','Binding','Stability','Reaction','Snap','Toggle3D']:
+            'Snap','Binding','Stability','Reaction','Snap','LineTool','Toggle3D']:
             parent.AddCheckTool(
                 wx_ids[text],
                 bmp,
@@ -1104,9 +1110,6 @@ class CustomNavigationToolbar2Wx(NavigationToolbar2Wx):
        # Let's capture the background of the figure
        axes = self.canvas.figure.get_axes()
        self.Backgrounds = [ self.canvas.copy_from_bbox(ax.bbox) for ax in axes ]
- 
-       if debug:
-           print "TODO: SWITCH OFF BUTTONS"
 
     def ChangeCursor(self,event):
        from matplotlib.backends.backend_wx import  wxc
@@ -1333,6 +1336,12 @@ class CustomNavigationToolbar2Wx(NavigationToolbar2Wx):
             #
             self.InitLabeling(a)
 
+            #
+            # replot points
+            #
+            self.OnPoints()
+            self.OnPoints()
+
         self.canvas.draw()
 
     #--------------------------------------------------------------------------
@@ -1388,7 +1397,8 @@ class CustomNavigationToolbar2Wx(NavigationToolbar2Wx):
            Z = self.Project.hull.points[:,2]
            Cmd = self.Project.Cmd
            self.Project.PointsScatter3D=a.scatter(X,Y,Z, c=Z,cmap=Cmd,\
-              s=self.Project.ps, zorder=9, edgecolors='black' )
+              s=self.Project.ps, zorder=9, edgecolors=self.Project.pt_color )
+              #s=self.Project.ps, zorder=9, edgecolors='black' )
            #
            # remove them if they should not be shown intially 
            #
@@ -1397,7 +1407,8 @@ class CustomNavigationToolbar2Wx(NavigationToolbar2Wx):
            Cmd = None
            Z = self.Project.pt_color
            self.Project.PointsScatter=a.scatter(X,Y,c=Z, s=self.Project.ps, \
-             cmap=Cmd, zorder=9, edgecolors='black' )
+             cmap=Cmd, zorder=9, edgecolors=Z )
+           #  cmap=Cmd, zorder=9, edgecolors='black' )
            #
            # remove them if they should not be shown intially 
            #
@@ -1883,8 +1894,8 @@ class CustomNavigationToolbar2Wx(NavigationToolbar2Wx):
               #
               # if (ix,iy) is close to a point existing in the database
               Inside, ix,iy,key = IsInsideOrClose(e,self.Project)
-   
-              if Inside: 
+
+              if Inside:
                   if e.button == 1 :
                      PrintReactionInfo(self.Project, ix, iy , self.logger, key) 
                   #
